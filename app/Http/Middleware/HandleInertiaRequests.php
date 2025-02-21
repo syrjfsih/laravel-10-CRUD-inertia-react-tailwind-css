@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Tighten\Ziggy\Ziggy;
-
+use Tightenco\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Auth; 
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -30,6 +30,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = Auth::user();
+
+        if ($user) {
+            $user->load('roles');
+
+            $user = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles,
+            ];
+        }
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user(),
@@ -49,9 +61,3 @@ class HandleInertiaRequests extends Middleware
     }
 }
 
-//Berikut adalah penjelasan singkat dari kode tersebut:
-//[-] public function share(Request $request): array: Ini adalah deklarasi fungsi share(). Fungsi ini menerima parameter $request yang merupakan permintaan HTTP saat ini dan mengembalikan sebuah array.
-//[-] return array_merge(parent::share($request), [...]: Fungsi ini menggabungkan data yang akan dibagikan dengan tampilan. parent::share($request) memanggil implementasi share() dari kelas induk (parent class), dan kemudian hasilnya digabungkan dengan data tambahan yang akan ditambahkan dalam array asosiatif.
-//[-] 'auth' => [...]: Bagian ini menambahkan data yang terkait dengan otentikasi pengguna. Ini mencakup informasi pengguna saat ini yang diambil dari permintaan HTTP.
-//[-] 'ziggy' => [...]: Bagian ini menambahkan data yang terkait dengan routing JavaScript yang dihasilkan oleh Ziggy, sebuah pustaka yang membantu dalam menangani routing pada aplikasi web JavaScript. Ini termasuk URL saat ini yang diambil dari permintaan HTTP.
-//[-] 'flash' => [...]: Bagian ini menambahkan data yang terkait dengan pesan flash. Pesan flash biasanya digunakan untuk menampilkan pesan sukses atau pesan kesalahan kepada pengguna setelah tindakan tertentu. Data ini diambil dari sesi (session) dan termasuk pesan sukses dan pesan kesalahan yang mungkin ada.
